@@ -11,7 +11,6 @@ import requests
 import json
 import base64
 
-
 # initialize Benchling client
 load_dotenv(find_dotenv())
 DOMAIN  = os.getenv("BENCHLING_DOMAIN")
@@ -24,8 +23,6 @@ if DOMAIN is None:
 
 benchling  = Benchling(url=f"https://{DOMAIN}", auth_method=ApiKeyAuth(API_KEY))
 print("Benchling client initialised OK")
-
-# sandbox_folder_id = "lib_70i3g6Il"
 
 # Function to read the .gbk files from microsynth, pull the names of these files
 def get_fasta_filenames(input_path: str) -> dict:
@@ -129,7 +126,6 @@ def create_template_alignment_api(file_payload, domain, api_key, folder_id=None,
         except Exception as e:
             print(f"Error creating alignment for {row['tube_name']}: {e}")
 
-        
 def main ():
     file_path = input("Paste your path name for the microsynth data example folder: ")
     fasta_dict = get_fasta_filenames(file_path)
@@ -138,7 +134,6 @@ def main ():
     print(file_payload)
 
     create_template_alignment_api(file_payload, DOMAIN, API_KEY)
-
 
 if __name__ == "__main__":
     main()
