@@ -34,7 +34,7 @@ def get_fasta_filenames(input_path: str) -> dict:
                 fasta_dict[tube_name] = full_path
     return fasta_dict
 
-def create_file_payload_dict(fasta_dict):
+def create_file_payload_df(fasta_dict):
     rows = []
     for tube_name, fasta_path in fasta_dict.items():
         # Read sequence from FASTA
@@ -71,13 +71,13 @@ def create_file_payload_dict(fasta_dict):
         # Collect row for DataFrame
         rows.append({
             "tube_name": tube_name,
-            "sequence_id": entity.id, # type: ignore
+            "template_id": entity.id, # type: ignore
             "fasta_sequence": str(record.seq),
             "fasta_path": fasta_path,
         })
     return pd.DataFrame(rows)
 
-def create_template_alignment_api(file_payload, domain, api_key, folder_id=None,):
+def create_template_alignment_api(file_payload, domain, api_key):
     url = f"https://{domain}/api/v2/nucleotide-alignments:create-template-alignment"
     headers = {"Content-Type": "application/json"}
     auth_tuple = (api_key, "")
@@ -103,7 +103,7 @@ def create_template_alignment_api(file_payload, domain, api_key, folder_id=None,
                 "retree": 2,
                 "strategy": "auto"
             },
-            "templateSequenceId": row["sequence_id"],
+            "templateSequenceId": row["template_id"],
             "files": [
                 {
                     "data": encoded_file,
@@ -124,8 +124,8 @@ def create_template_alignment_api(file_payload, domain, api_key, folder_id=None,
 def main ():
     file_path = input("Paste your path for the microsynth data: ")
     fasta_dict = get_fasta_filenames(file_path)
-    file_payload = create_file_payload_dict(fasta_dict)
-    create_template_alignment_api(file_payload, DOMAIN, API_KEY)
+    file_df = create_file_payload_df(fasta_dict)
+    create_template_alignment_api(file_df, DOMAIN, API_KEY)
 
 if __name__ == "__main__":
     main()
