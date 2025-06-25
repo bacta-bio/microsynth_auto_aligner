@@ -1,5 +1,0 @@
-ContigID	Position	RefBase	IUPAC	A	C	G	T	Del	Ins	ReadDepth	MeanBaseQ	MeanMapQ	QScore	Match[%]	Mismatch[%]	Del[%]	Ins[%]	Deletions[>1.0%]	Insertions[>1.0%]
-N1-6	910	G	G	77	0	497	1	0	1	575	26.20	60.00	31	86.43	13.57	0.00	0.17	NA	NA
-N1-6	1261	G	R	196	0	380	0	0	0	576	22.56	60.00	20	65.97	34.03	0.00	0.00	NA	NA
-N1-6	4445	T	T	0	1	0	516	60	7	577	33.30	59.79	39	89.43	0.17	10.40	1.21	NA	NA
-N1-6	4446	C	C	0	511	0	2	64	0	577	30.33	59.79	36	88.56	0.35	11.09	0.00	NA	NA
