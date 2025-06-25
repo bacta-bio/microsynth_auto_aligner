@@ -20,7 +20,6 @@ if DOMAIN is None:
     sys.exit("Error: BENCHLING_DOMAIN environment variable not set.")
 
 benchling  = Benchling(url=f"https://{DOMAIN}", auth_method=ApiKeyAuth(API_KEY))
-print("Benchling client initialised OK")
 
 # Function to read the .gbk files from microsynth, pull the names of these files
 def get_fasta_filenames(input_path: str) -> dict:
@@ -76,7 +75,6 @@ def create_file_payload_dict(fasta_dict):
             "fasta_sequence": str(record.seq),
             "fasta_path": fasta_path,
         })
-
     return pd.DataFrame(rows)
 
 def create_template_alignment_api(file_payload, domain, api_key, folder_id=None,):
@@ -88,7 +86,6 @@ def create_template_alignment_api(file_payload, domain, api_key, folder_id=None,
         with open(row["fasta_path"], "rb") as fasta_file:
             raw_bytes = fasta_file.read()
         encoded_file = base64.b64encode(raw_bytes).decode("ascii")
-
         payload = {
             "algorithm": "mafft",
             "clustaloOptions": {
@@ -125,7 +122,7 @@ def create_template_alignment_api(file_payload, domain, api_key, folder_id=None,
             print(f"Error creating alignment for {row['tube_name']}: {e}")
 
 def main ():
-    file_path = input("Paste path for the microsynth data: ")
+    file_path = input("Paste your path for the microsynth data: ")
     fasta_dict = get_fasta_filenames(file_path)
     file_payload = create_file_payload_dict(fasta_dict)
     create_template_alignment_api(file_payload, DOMAIN, API_KEY)
