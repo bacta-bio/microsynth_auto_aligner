@@ -123,11 +123,11 @@ def create_template_alignment_api(file_payload, domain, api_key):
 
 def main ():
     file_path = input("Paste your path for the microsynth data: ")
-    print(f"working...")
+    print(f"\nworking...")
     fasta_dict = get_fasta_filenames(file_path)
     file_df = create_file_payload_df(fasta_dict)
     create_template_alignment_api(file_df, DOMAIN, API_KEY)
-    print(f"Successfully created template alignments for {len(file_df)} + tubes. Results uploaded to Benchling.")
+    print(f"\nSuccessfully created template alignments for {len(file_df)} + tubes. Results uploaded to Benchling.")
 
 if __name__ == "__main__":
     main()
