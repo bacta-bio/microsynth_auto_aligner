@@ -5,10 +5,8 @@ from benchling_sdk.benchling import Benchling
 from benchling_sdk.auth.api_key_auth import ApiKeyAuth
 import sys
 import pandas as pd
-from benchling_sdk.helpers.serialization_helpers import fields
 from Bio import SeqIO
 import requests
-import json
 import base64
 
 # initialize Benchling client
@@ -127,12 +125,9 @@ def create_template_alignment_api(file_payload, domain, api_key, folder_id=None,
             print(f"Error creating alignment for {row['tube_name']}: {e}")
 
 def main ():
-    file_path = input("Paste your path name for the microsynth data example folder: ")
+    file_path = input("Paste path for the microsynth data: ")
     fasta_dict = get_fasta_filenames(file_path)
-
     file_payload = create_file_payload_dict(fasta_dict)
-    print(file_payload)
-
     create_template_alignment_api(file_payload, DOMAIN, API_KEY)
 
 if __name__ == "__main__":
