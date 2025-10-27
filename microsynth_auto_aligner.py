@@ -295,14 +295,38 @@ def main() -> None:
 
     if args.path:
         success = run_alignment(args.path)
-        if not success:
-            sys.exit(1)
+        if success:
+            print("\nAlignment completed successfully!")
+            while True:
+                again = input("\nWould you like to run another alignment? (yes/no): ").strip().lower()
+                if again in ('no', 'n'):
+                    break
+                elif again in ('yes', 'y'):
+                    file_path = input("\nPaste your path for the microsynth data: ")
+                    run_alignment(file_path)
+                else:
+                    print("Please answer 'yes' or 'no'")
         return
 
-    file_path = input("Paste your path for the microsynth data: ")
-    success = run_alignment(file_path)
-    if not success:
-        sys.exit(1)
+    # Interactive loop
+    while True:
+        file_path = input("\nPaste your path for the microsynth data (or 'exit' to quit): ").strip()
+        if file_path.lower() in ('exit', 'quit', 'q'):
+            print("Goodbye!")
+            break
+        
+        if not file_path:
+            print("Please provide a valid path or type 'exit' to quit.")
+            continue
+            
+        success = run_alignment(file_path)
+        if success:
+            print("\nAlignment completed successfully!")
+            again = input("\nWould you like to run another alignment? (yes/no): ").strip().lower()
+            if again in ('no', 'n'):
+                print("Goodbye!")
+                break
+            # If yes, the loop continues
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsynth Auto Aligner - Bacta</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Logo -->
+        <header class="header">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/bacta-logo.png') }}" alt="Bacta Logo" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="logo-text" style="display: none;">BACTA</div>
+            </div>
+            <h1>Microsynth Auto Aligner</h1>
+            <p class="subtitle">Upload sequencing data from Microsynth and align with Benchling templates</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="card">
+                <h2>Configure Alignment</h2>
+                
+                <form id="alignment-form">
+                    <div class="form-group">
+                        <label for="file-upload">Upload Microsynth Files</label>
+                        <input 
+                            type="file" 
+                            id="file-upload" 
+                            name="files" 
+                            multiple
+                            accept=".fasta,.fa,.gbk,.genbank,.zip"
+                            required
+                        >
+                        <small class="help-text">
+                            Upload your Microsynth FASTA files (.fasta, .fa, .gbk, .genbank) or a zip archive containing multiple files
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="run-btn">
+                        <span class="btn-text">Upload & Run Alignment</span>
+                        <span class="btn-loader" style="display: none;">⏳ Uploading & Processing...</span>
+                    </button>
+                </form>
+
+                <!-- Status Messages -->
+                <div id="status-message" class="status-message" style="display: none;"></div>
+            </div>
+
+            <!-- Logs Section -->
+            <div class="card">
+                <h2>Progress Log</h2>
+                <div class="log-container" id="log-container">
+                    <p class="log-placeholder">Waiting to start alignment...</p>
+                </div>
+                <div class="log-actions">
+                    <button class="btn btn-secondary" id="clear-logs-btn">Clear Logs</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Bacta - Automated Sequencing Data Processing</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+

@@ -1,10 +1,31 @@
-.venv
-__pycache__/
+# Git files
+.git
+.gitignore
+
+# Environment files
+.env
+.env.*
+
+# Documentation
+README.md
+
+# Python cache
+__pycache__
 *.pyc
 *.pyo
 *.pyd
-.pytest_cache/
-.mypy_cache/
-.DS_Store
+.Python
+
+# Logo placeholder
+*.placeholder
+
+# Virtual environments
+venv/
 env/
-.env
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

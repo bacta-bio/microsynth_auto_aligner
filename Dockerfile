@@ -4,21 +4,27 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system deps for building Python packages that require compilation
+# Install system deps: build tools and compression libraries for biopython
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        # Build tools
         build-essential \
         libffi-dev \
-        libssl-dev \
-        tk \
-        libbz2-dev \
-        liblzma-dev \
-        libz-dev && \
+        # Compression libraries for biopython
+        libbz2-dev liblzma-dev libz-dev && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY microsynth_auto_aligner.py .
+COPY app.py .
+COPY templates/ ./templates/
+COPY static/ ./static/
 
-ENTRYPOINT ["python", "microsynth_auto_aligner.py"]
+# Create upload directory with proper permissions
+RUN mkdir -p /tmp/uploads && chmod 777 /tmp/uploads
+
+EXPOSE 8080
+
+CMD ["python", "app.py"]
