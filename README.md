@@ -13,3 +13,9 @@ How to use it:
 - If the microsynth sample name is TUBEXXXX (your tube) and you have created your tubes properly, the aligner will do the rest!
 - Download the data, then copy the path to the file and paste it into the program when prompted
 - Alignments are then automatically uploaded to Benchling using the API and can be viewed from any computer
+
+Docker usage:
+- Build the image: `docker build -t microsynth-aligner .`
+- Run with your FASTA directory mounted (replace `/local/path`):  
+  `docker run --rm -it -e BENCHLING_DOMAIN=your-domain -e BENCHLING_API_KEY=your-api-key -v /local/path:/data microsynth-aligner --path /data`
+- Omitting `--path` will drop you into the interactive prompt so you can paste a path manually.
