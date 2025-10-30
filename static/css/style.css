@@ -46,12 +46,58 @@ body {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+.header-with-tabs {
+    text-align: left;
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.app-title h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 10px 14px;
+    font-weight: 600;
+    color: var(--text-light);
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+}
+
+.tab:hover {
+    color: var(--text-color);
+}
+
+.tab.active {
+    color: var(--text-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-panel.hidden {
+    display: none;
+}
+
 .logo-container {
     margin-bottom: 20px;
 }
 
 .logo {
-    height: 70px;
+    height: 24px;
     width: auto;
     margin-bottom: 15px;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
@@ -159,6 +205,25 @@ body {
     color: var(--text-light);
 }
 
+.placeholder-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    background: #f8fafc;
+    margin-top: 12px;
+}
+
+.placeholder-icon {
+    font-size: 1.25rem;
+}
+
+.placeholder-text {
+    color: var(--text-light);
+}
+
 /* Buttons */
 .btn {
     padding: 12px 24px;
@@ -246,6 +311,19 @@ body {
     justify-content: flex-end;
 }
 
+.preview-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.preview-table th, .preview-table td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    text-align: left;
+}
+.preview-table th {
+    background: #f1f5f9;
+}
+
 /* Scrollbar Styling for Log Container */
 .log-container::-webkit-scrollbar {
     width: 8px;
@@ -266,15 +344,7 @@ body {
 }
 
 /* Footer */
-.footer {
-    text-align: center;
-    color: var(--text-light);
-    padding: 30px 20px;
-    font-size: 0.875rem;
-    background: white;
-    border-radius: 20px 20px 0 0;
-    margin-top: 20px;
-}
+/* Footer removed */
 
 /* Responsive Design */
 /* Results Section */

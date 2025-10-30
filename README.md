@@ -74,58 +74,9 @@ Open your browser at: `http://localhost:8080` or `http://your-server-ip:8080`
 - 📦 **Multiple Files**: Upload multiple files or a zip archive at once
 - 🔒 **Secure**: Files are temporarily stored and automatically cleaned up
 
-## Production Deployment
-
-### Docker Compose (Recommended)
-
-Create `docker-compose.yml`:
-```yaml
-version: '3.8'
-
-services:
-  microsynth-aligner:
-    image: microsynth-aligner
-    container_name: microsynth-aligner
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    restart: unless-stopped
-```
-
-Run with:
-```bash
-docker-compose up -d
-```
-
-### Nginx Reverse Proxy Setup
-
-For SSL and domain routing, add to your nginx configuration:
-
-```nginx
-server {
-    listen 80;
-    server_name microsynth.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Docker Compose with Nginx proxy
-
-Run an Nginx container that proxies to the Gunicorn app over the Docker network.
-
-docker-compose.yml (provided in repo):
-
-Nginx base config (nginx/nginx.conf) and virtual host (nginx/conf.d/app.conf) are included. Update `server_name`, TLS cert paths, and `client_max_body_size` as needed.
-
 ## 🐳 Docker Deployment
+
+### Local dev
 
 ```bash
 # Build the Docker image (Dockerfile now lives in ./docker)

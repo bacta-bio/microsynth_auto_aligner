@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Microsynth Auto Aligner - Bacta</title>
+    <title>baCta Apps</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
-        <!-- Header with Logo -->
-        <header class="header">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/bacta-logo.png') }}" alt="Bacta Logo" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <div class="logo-text" style="display: none;">BACTA</div>
+        <!-- Header with Logo + Tabs -->
+        <header class="header header-with-tabs">
+            <div class="header-top">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='images/bacta-logo.png') }}" alt="Bacta Logo" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="logo-text" style="display: none;">BACTA</div>
+                </div>
+                <div class="app-title">
+                    <h1>baCta Apps</h1>
+                </div>
             </div>
-            <h1>Microsynth Auto Aligner</h1>
-            <p class="subtitle">Upload sequencing data from Microsynth and align with Benchling templates</p>
+
+            <nav class="tabs" role="tablist">
+                <button class="tab active" data-tab="aligner" aria-selected="true" role="tab">Microsynth Auto Aligner</button>
+                <button class="tab" data-tab="next" aria-selected="false" role="tab">Primer Registration</button>
+                <button class="tab" data-tab="helper" aria-selected="false" role="tab">Benchling Helper</button>
+            </nav>
         </header>
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Tab: Aligner -->
+            <section class="tab-panel" id="tab-aligner" role="tabpanel" aria-labelledby="tab-aligner-btn">
             <div class="card">
                 <h2>Configure Alignment</h2>
                 
@@ -67,12 +78,69 @@
                     <button class="btn btn-secondary" id="clear-logs-btn">Clear Logs</button>
                 </div>
             </div>
-        </main>
+            </section>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>&copy; 2025 Bacta - Automated Sequencing Data Processing</p>
-        </footer>
+            <!-- Tab: Second (placeholder) -->
+            <section class="tab-panel hidden" id="tab-next" role="tabpanel" aria-labelledby="tab-next-btn">
+                <div class="card">
+                    <h2>Primer Registration</h2>
+                    <div class="form-group">
+                        <label for="primer-user">Select User</label>
+                        <select id="primer-user"></select>
+                        <small class="help-text">Benchling user to assign as author</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="primer-direction">Direction (optional)</label>
+                        <select id="primer-direction"></select>
+                        <small class="help-text">Maps to Benchling Direction dropdown</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="primer-file">Upload CSV</label>
+                        <input type="file" id="primer-file" accept=".csv,.xlsx">
+                        <small class="help-text">Columns required: Name, Sequence, Description</small>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" id="primer-preview-btn">Preview</button>
+                        <button class="btn btn-secondary" id="primer-register-btn" disabled>Register to Benchling</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Preview</h2>
+                    <div id="primer-preview-table" class="preview-table"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Results</h2>
+                    <div id="primer-results-table" class="preview-table"></div>
+                    <div class="log-actions">
+                        <button class="btn btn-secondary" id="primer-download-idt" disabled>Download IDT CSV</button>
+                        <button class="btn btn-secondary" id="primer-download-eurofins" disabled>Download Eurofins XLSX</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Tab: Benchling Helper Logs -->
+        <section class="tab-panel hidden" id="tab-helper" role="tabpanel" aria-labelledby="tab-helper-btn">
+            <div class="card">
+                <h2>Benchling Helper Logs</h2>
+                <div class="form-group">
+                    <label for="helper-tail">Lines to show</label>
+                    <input type="number" id="helper-tail" min="50" max="2000" value="200">
+                </div>
+                <div class="log-container" id="helper-log-container">
+                    <p class="log-placeholder">Select the tab to start streaming logs...</p>
+                </div>
+                <div class="log-actions">
+                    <button class="btn btn-secondary" id="helper-refresh">Refresh</button>
+                </div>
+            </div>
+        </section>
+
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
