@@ -31,5 +31,3 @@ EXPOSE 8080
 
 # Run the Flask app with Gunicorn using config file (env-overridable)
 CMD ["gunicorn", "-c", "gunicorn.conf.py", "src.app:app"]
-
-

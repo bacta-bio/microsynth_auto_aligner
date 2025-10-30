@@ -132,46 +132,19 @@ Nginx base config (nginx/nginx.conf) and virtual host (nginx/conf.d/app.conf) ar
 docker build -f docker/Dockerfile -t microsynth-aligner .
 
 # Run with environment file
-docker run -d --env-file .env microsynth-aligner
+docker run -d -p 8080:8080 --env-file .env microsynth-aligner
 ```
 
 ### Deploying to Docker Hub (multi-arch)
-
-On the local machine:
-
-```bash
-export DOCKER_USER="mnbactabio"
-export IMAGE="bacta-apps"
-export VERSION="1.0.0"
-
-# From the repository root (where the docker/ directory lives)
-
-# Create/use a multi-arch builder (first time only)
-docker buildx create --name multi-arch-builder --use 2>/dev/null || docker buildx use multi-arch-builder
-
-docker buildx build -f docker/Dockerfile \
-  --platform linux/amd64,linux/arm64 \
-  -t $DOCKER_USER/$IMAGE:$VERSION \
-  -t $DOCKER_USER/$IMAGE:latest \
-  --push .
-```
+./build_and_push_docker.sh
 
 On the instance:
 
 ```bash
-# 1) Set vars (match what you pushed)
-export DOCKER_USER="mnbactabio"
-export IMAGE="bacta-apps"
-export VERSION="1.0.0"
-
 # 2) Login (use token if private)
-echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin
-
-# 3) Pull the image
-docker pull $DOCKER_USER/$IMAGE:$VERSION
-
-# 4) Run it (adjust ports/env/volumes as needed)
-docker run -d --name benchling --env-file .env -p 8080:8080 $DOCKER_USER/$IMAGE:$VERSION
+docker login -u "mnbactabio"
+docker pull mnbactabio/bacta-apps:lastest
+docker run -d --name benchling --env-file .env -p 8080:8080 mnbactabio/bacta-apps:lastest
 
 ### Orchestrate with docker compose
 
