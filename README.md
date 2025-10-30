@@ -17,10 +17,14 @@ docker build -t microsynth-aligner .
 ```
 
 ### 2. Set Up Environment Variables
-Create a `.env` file with your Benchling credentials:
+Create a `.env` file with your Benchling OAuth2 credentials:
 ```bash
-BENCHLING_DOMAIN=your-domain.benchling.com
-BENCHLING_API_KEY=your_api_key_here
+BENCHLING_CLIENT_ID=your_client_id_here
+BENCHLING_CLIENT_SECRET=your_client_secret_here
+BENCHLING_BASE_URL=https://api.benchling.com/v2
+BENCHLING_TOKEN_URL=https://api.benchling.com/v2/token
+REQUEST_TIMEOUT=30
+MAX_RETRIES=3
 ```
 
 ### 3. Add Your Bacta Logo (Optional)
@@ -113,6 +117,78 @@ server {
 }
 ```
 
+### Docker Compose with Nginx proxy
+
+Run an Nginx container that proxies to the Gunicorn app over the Docker network.
+
+docker-compose.yml (provided in repo):
+
+Nginx base config (nginx/nginx.conf) and virtual host (nginx/conf.d/app.conf) are included. Update `server_name`, TLS cert paths, and `client_max_body_size` as needed.
+
+## 🐳 Docker Deployment
+
+```bash
+# Build the Docker image (Dockerfile now lives in ./docker)
+docker build -f docker/Dockerfile -t microsynth-aligner .
+
+# Run with environment file
+docker run -d --env-file .env microsynth-aligner
+```
+
+### Deploying to Docker Hub (multi-arch)
+
+On the local machine:
+
+```bash
+export DOCKER_USER="mnbactabio"
+export IMAGE="bacta-apps"
+export VERSION="1.0.0"
+
+# From the repository root (where the docker/ directory lives)
+
+# Create/use a multi-arch builder (first time only)
+docker buildx create --name multi-arch-builder --use 2>/dev/null || docker buildx use multi-arch-builder
+
+docker buildx build -f docker/Dockerfile \
+  --platform linux/amd64,linux/arm64 \
+  -t $DOCKER_USER/$IMAGE:$VERSION \
+  -t $DOCKER_USER/$IMAGE:latest \
+  --push .
+```
+
+On the instance:
+
+```bash
+# 1) Set vars (match what you pushed)
+export DOCKER_USER="mnbactabio"
+export IMAGE="bacta-apps"
+export VERSION="1.0.0"
+
+# 2) Login (use token if private)
+echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin
+
+# 3) Pull the image
+docker pull $DOCKER_USER/$IMAGE:$VERSION
+
+# 4) Run it (adjust ports/env/volumes as needed)
+docker run -d --name benchling --env-file .env -p 8080:8080 $DOCKER_USER/$IMAGE:$VERSION
+
+### Orchestrate with docker compose
+
+To run the full Nginx + app stack:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+Configs referenced by the compose file are under `docker/nginx/`.
+```
+
+Notes:
+- If your Dockerfile is not at the repo root, change `-f Dockerfile` to its path (e.g., `-f docker/Dockerfile`).
+- Replace `benchling`/`microsynth-aligner` with your preferred image name.
+- Expose and map port 8080 if accessing via a browser.
+
 ## Troubleshooting
 
 ### Logs Not Appearing
@@ -125,9 +201,10 @@ server {
 - Check your network connection stability
 
 ### Benchling API Errors
-- Verify `.env` file has correct credentials
-- Check API key permissions in Benchling
-- Ensure BENCHLING_DOMAIN is correct
+- Verify `.env` file has correct OAuth2 credentials
+- Check OAuth2 app permissions in Benchling
+- Ensure BENCHLING_CLIENT_ID and BENCHLING_CLIENT_SECRET are correct
+- Verify BENCHLING_BASE_URL points to the correct API endpoint
 
 ### Container Issues
 - Check container status: `docker ps -a`
@@ -152,13 +229,43 @@ docker logs -f microsynth-aligner
 ### Backup Environment File
 Keep your `.env` file backed up and secure - it contains sensitive API credentials.
 
+## Project Structure
+
+```
+microsynth_auto_aligner/
+├── src/                          # Main application code
+│   ├── app.py                    # Flask web server
+│   └── microsynth_auto_aligner.py # Core alignment logic
+├── benchling/                    # Custom Benchling API client
+│   ├── __init__.py
+│   ├── auth.py                   # OAuth2 authentication
+│   ├── client.py                 # API client wrapper
+│   └── config.py                 # Configuration management
+├── static/                       # Web assets
+├── templates/                     # HTML templates
+├── env.example                   # Environment variables template
+└── requirements.txt              # Python dependencies
+```
+
+## OAuth2 Setup
+
+This application uses OAuth2 Client Credentials flow for Benchling API authentication. To set up:
+
+1. **Create a Benchling App**: In your Benchling instance, go to Settings → Apps & Integrations → Create App
+2. **Configure OAuth2**: Enable OAuth2 Client Credentials and note your Client ID and Secret
+3. **Set Permissions**: Ensure the app has necessary permissions for:
+   - Reading containers and their contents
+   - Creating nucleotide alignments
+   - Accessing entity schemas
+
 ## Technical Details
 
 - **Max Upload Size**: 100MB per request
 - **Temporary Storage**: `/tmp/uploads` (auto-cleaned after processing)
 - **Port**: 8080
 - **Technology**: Python Flask web server with custom frontend
-- **Dependencies**: Benchling SDK, Biopython, Pandas
+- **Dependencies**: Custom Benchling API client, Biopython, Pandas, python-dotenv
+- **Authentication**: OAuth2 Client Credentials flow
 
 ---
 

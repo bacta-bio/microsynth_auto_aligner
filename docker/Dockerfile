@@ -17,14 +17,19 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY microsynth_auto_aligner.py .
-COPY app.py .
+# Copy the new project structure
+COPY src/ ./src/
+COPY benchling/ ./benchling/
 COPY templates/ ./templates/
 COPY static/ ./static/
+COPY docker/gunicorn.conf.py ./gunicorn.conf.py
 
 # Create upload directory with proper permissions
 RUN mkdir -p /tmp/uploads && chmod 777 /tmp/uploads
 
 EXPOSE 8080
 
-CMD ["python", "app.py"]
+# Run the Flask app with Gunicorn using config file (env-overridable)
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "src.app:app"]
+
+

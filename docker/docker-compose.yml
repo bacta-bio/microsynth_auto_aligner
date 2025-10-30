@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    # Build from local Dockerfile
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    # Or use a pre-built image instead of build:
+    # image: mnbactabio/bacta-apps:latest
+    container_name: app
+    expose:
+      - "8000"
+    env_file:
+      - ../.env
+    environment:
+      - GUNICORN_CMD_ARGS=--workers=3 --threads=2 --bind=0.0.0.0:8000 --timeout=60 --keep-alive=5 --access-logfile=- --error-logfile=-
+      # If behind a proxy, uncomment:
+      # - GUNICORN_CMD_ARGS=--workers=3 --threads=2 --bind=0.0.0.0:8000 --proxy-allow-from="*" --forwarded-allow-ips="*"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:stable
+    container_name: nginx
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      # - "443:443"   # if terminating TLS in Nginx
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../static:/var/www/static:ro
+      # - ./certs:/etc/letsencrypt:ro  # if using Let's Encrypt on the host
+    restart: unless-stopped
+
+

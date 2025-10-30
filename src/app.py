@@ -7,14 +7,23 @@ import os
 import tempfile
 import zipfile
 import shutil
-from microsynth_auto_aligner import run_alignment, set_log_function
+import sys
 
-app = Flask(__name__)
+# Add the parent directory to the Python path so we can import from src
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.microsynth_auto_aligner import run_alignment, set_log_function
+
+# Get the absolute path to the templates and static directories
+template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max upload size
 app.config['UPLOAD_FOLDER'] = '/tmp/uploads'  # Use persistent temp directory
 
-# Store logs in memory for this session
+# Store logs and alignment results in memory for this session
 logs_buffer = []
+alignment_results = []
 
 def web_log(message: str) -> None:
     """Log function that sends messages to the web interface."""
@@ -29,10 +38,25 @@ def index():
     """Main page"""
     return render_template('index.html')
 
+@app.route('/health', methods=['GET'])
+def health():
+    """Simple health endpoint for load balancers."""
+    return jsonify({"status": "ok"}), 200
+
+@app.route('/healthz', methods=['GET'])
+def healthz():
+    """Kubernetes/Compose-friendly health endpoint alias."""
+    return jsonify({"status": "ok"}), 200
+
 @app.route('/api/logs')
 def get_logs():
     """Get recent log messages"""
     return jsonify({'logs': logs_buffer})
+
+@app.route('/api/results')
+def get_results():
+    """Get alignment results with Benchling links"""
+    return jsonify({'results': alignment_results})
 
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
@@ -77,8 +101,9 @@ def upload_files():
 @app.route('/api/run', methods=['POST'])
 def run_alignment_api():
     """Run the alignment process"""
-    global logs_buffer
+    global logs_buffer, alignment_results
     logs_buffer = []  # Clear logs
+    alignment_results = []  # Clear previous results
     
     data = request.json
     upload_dir = data.get('upload_dir', '')
@@ -94,11 +119,13 @@ def run_alignment_api():
         set_log_function(web_log)
         
         # Run the alignment
-        success = run_alignment(upload_dir)
+        success, results = run_alignment(upload_dir)
+        alignment_results = results
         
         return jsonify({
             'success': success,
-            'message': 'Alignment completed successfully' if success else 'Alignment failed'
+            'message': 'Alignment completed successfully' if success else 'Alignment failed',
+            'results_count': len(results)
         })
     finally:
         # Clean up temporary files

@@ -8,21 +8,18 @@ from typing import Callable, Optional
 import pandas as pd
 import requests
 from Bio import SeqIO
-from benchling_sdk.auth.api_key_auth import ApiKeyAuth
-from benchling_sdk.benchling import Benchling
 from dotenv import find_dotenv, load_dotenv
 
-# initialize Benchling client
+# Import our custom Benchling client
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from benchling import BenchlingClient, get_config
+
+# Initialize Benchling client
 load_dotenv(find_dotenv())
-DOMAIN  = os.getenv("BENCHLING_DOMAIN")
-API_KEY = os.getenv("BENCHLING_API_KEY")
-
-if API_KEY is None:
-    sys.exit("Error: BENCHLING_API_KEY environment variable not set.")
-if DOMAIN is None:
-    sys.exit("Error: BENCHLING_DOMAIN environment variable not set.")
-
-benchling  = Benchling(url=f"https://{DOMAIN}", auth_method=ApiKeyAuth(API_KEY))
+try:
+    benchling_client = BenchlingClient()
+except Exception as e:
+    sys.exit(f"Error initializing Benchling client: {e}")
 
 LOG_FUNCTION: Callable[[str], None] = print
 
@@ -38,55 +35,49 @@ def log(message: str) -> None:
 
 
 def find_container(identifier: str):
-    # Attempt to find a container by name or barcode
+    """Find a container by name, display ID, or barcode using the Benchling API."""
+    # Search strategies for finding containers
     search_strategies = [
         ("name", {"name": identifier}),
-        ("case-sensitive name", {"names_any_of_case_sensitive": [identifier]}),
-        ("display ID", {"display_ids": [identifier]}),
+        ("display ID", {"displayIds": [identifier]}),
         ("barcode", {"barcodes": [identifier]}),
     ]
 
     for label, params in search_strategies:
         try:
-            iterator = benchling.containers.list(page_size=1, **params)
-            container = iterator.first()
+            response = benchling_client.make_request('GET', '/containers', params=params)
+            containers = response.json().get('containers', [])
+            
+            if not containers:
+                continue
+                
+            container = containers[0]  # Take the first match
+            
+            # Extract container attributes safely
+            container_name = container.get('name')
+            container_barcode = container.get('barcode')
+            container_display_id = container.get('displayId')
+
+            # Verify the match is correct
+            if (
+                container_name == identifier
+                or container_barcode == identifier
+                or container_display_id == identifier
+                or label in {"barcode", "display ID"}
+            ):
+                if label == "barcode" and container_name != identifier:
+                    log(
+                        f"Info: Matched {identifier} by barcode. Container name is {container_name} and barcode {container_barcode}."
+                    )
+                elif label == "display ID" and container_display_id != identifier:
+                    log(
+                        f"Info: Matched {identifier} by display ID. Container name is {container_name} and display ID {container_display_id}."
+                    )
+                return container
+                
         except Exception as exc:
             log(f"Error retrieving container {identifier} by {label}: {exc}")
             continue
-
-        if not container:
-            continue
-
-        try:
-            container_name: Optional[str] = container.name
-        except Exception:
-            container_name = None
-
-        try:
-            container_barcode: Optional[str] = container.barcode
-        except Exception:
-            container_barcode = None
-
-        try:
-            container_display_id: Optional[str] = container.display_id
-        except Exception:
-            container_display_id = None
-
-        if (
-            container_name == identifier
-            or container_barcode == identifier
-            or container_display_id == identifier
-            or label in {"barcode", "display ID"}
-        ):
-            if label == "barcode" and container_name != identifier:
-                log(
-                    f"Info: Matched {identifier} by barcode. Container name is {container_name} and barcode {container_barcode}."
-                )
-            elif label == "display ID" and container_display_id != identifier:
-                log(
-                    f"Info: Matched {identifier} by display ID. Container name is {container_name} and display ID {container_display_id}."
-                )
-            return container
 
     return None
 
@@ -121,8 +112,16 @@ def create_file_payload_df(fasta_dict):
 
         # Get the first entity inside that container
         try:
-            contents = benchling.containers.list_contents(container_id=container.id)
-            entity = next((item.entity for item in contents if hasattr(item, 'entity') and item.entity), None)
+            response = benchling_client.make_request('GET', f'/containers/{container["id"]}/contents')
+            contents = response.json().get('contents', [])
+            entity = None
+            
+            # Find the first entity in the container contents
+            for item in contents:
+                if item.get('entity'):
+                    entity = item['entity']
+                    break
+                    
         except Exception as e:
             log(f"Error retrieving sequences from container {tube_name}: {e}")
             continue
@@ -134,21 +133,23 @@ def create_file_payload_df(fasta_dict):
         # Collect row for DataFrame
         rows.append({
             "tube_name": tube_name,
-            "template_id": entity.id, # type: ignore
+            "template_id": entity["id"],
             "fasta_sequence": str(record.seq),
             "fasta_path": fasta_path,
         })
     return pd.DataFrame(rows)
 
-def create_template_alignment_api(file_payload, domain, api_key):
-    url = f"https://{domain}/api/v2/nucleotide-alignments:create-template-alignment"
-    headers = {"Content-Type": "application/json"}
-    auth_tuple = (api_key, "")
+def create_template_alignment_api(file_payload):
+    """Create template alignments using the Benchling API."""
+    config = get_config()
+    alignment_results = []
+    
     for _, row in file_payload.iterrows():
         # Read the FASTA file as binary and base64-encode it
         with open(row["fasta_path"], "rb") as fasta_file:
             raw_bytes = fasta_file.read()
         encoded_file = base64.b64encode(raw_bytes).decode("ascii")
+        
         payload = {
             "algorithm": "mafft",
             "clustaloOptions": {
@@ -175,17 +176,47 @@ def create_template_alignment_api(file_payload, domain, api_key):
             ],
             "name": row["tube_name"]
         }
+        
         try:
-            response = requests.post(url, auth=auth_tuple, headers=headers, json=payload)
-            response.raise_for_status()
-            log(f"Template alignment created for {row['tube_name']}: {response.json()}")
-        except requests.exceptions.HTTPError as http_err:
-            log(f"HTTP error creating alignment for {row['tube_name']}: {http_err} - {response.text}") # type: ignore
+            response = benchling_client.make_request(
+                'POST', 
+                '/nucleotide-alignments:create-template-alignment', 
+                data=payload
+            )
+            response_data = response.json()
+            print(f"DEBUG: Response data for {row['tube_name']}: {response_data}")  # Console log
+            
+            # Check for both 'id' and 'taskId' fields
+            alignment_id = response_data.get('id') or response_data.get('taskId')
+            alignment_name = response_data.get('name', row['tube_name'])
+            
+            log(f"Template alignment created for {row['tube_name']}: {response_data}")
+            
+            # Store the result for returning to the caller
+            alignment_results.append({
+                'tube_name': row['tube_name'],
+                'alignment_id': alignment_id,
+                'alignment_name': alignment_name,
+                'success': True,
+                'response_data': response_data  # Include full response for debugging
+            })
+            
         except Exception as e:
+            print(f"DEBUG: Error for {row['tube_name']}: {e}")  # Console log
             log(f"Error creating alignment for {row['tube_name']}: {e}")
+            alignment_results.append({
+                'tube_name': row['tube_name'],
+                'alignment_id': None,
+                'alignment_name': row['tube_name'],
+                'success': False,
+                'error': str(e)
+            })
+    
+    return alignment_results
 
 
-def run_alignment(file_path: str) -> bool:
+def run_alignment(file_path: str) -> tuple[bool, list]:
+    """Run alignment process and return success status and alignment results."""
     log("\nworking...")
     fasta_dict = get_fasta_filenames(file_path)
     file_df = create_file_payload_df(fasta_dict)
@@ -194,10 +225,13 @@ def run_alignment(file_path: str) -> bool:
             "\nNo containers with matching names or barcodes were found. "
             "Verify that your FASTA filenames match the Benchling container identifiers."
         )
-        return False
-    create_template_alignment_api(file_df, DOMAIN, API_KEY)
-    log(f"\nSuccessfully created template alignments for {len(file_df)} tubes. Results uploaded to Benchling.")
-    return True
+        return False, []
+    
+    alignment_results = create_template_alignment_api(file_df)
+    successful_alignments = [r for r in alignment_results if r['success']]
+    
+    log(f"\nSuccessfully created template alignments for {len(successful_alignments)} tubes. Results uploaded to Benchling.")
+    return len(successful_alignments) > 0, alignment_results
 
 
 def launch_gui() -> None:
