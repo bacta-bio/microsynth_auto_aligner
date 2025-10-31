@@ -69,49 +69,68 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    // Track last displayed results to avoid unnecessary updates
+    let lastResultsHash = null;
+    let resultsDisplayed = false;
+
     // Function to update results
     function updateResults() {
         fetch('/api/results')
             .then(response => response.json())
             .then(data => {
                 console.log('DEBUG: Results data:', data);  // Console log
+                
+                // Create a hash of current results to detect changes
+                const currentHash = data.results ? JSON.stringify(data.results) : '';
+                
+                // Only update if results changed or if we have results to show
                 if (data.results && data.results.length > 0) {
-                    resultsCard.style.display = 'block';
-                    resultsContainer.innerHTML = '';
-                    
-                    data.results.forEach(result => {
-                        console.log('DEBUG: Processing result:', result);  // Console log
-                        const resultEntry = document.createElement('div');
-                        resultEntry.className = 'result-entry';
+                    // Only rebuild if results actually changed
+                    if (currentHash !== lastResultsHash) {
+                        resultsCard.style.display = 'block';
+                        resultsContainer.innerHTML = '';
                         
-                        if (result.success && result.alignment_id) {
-                            // Create Benchling link - handle both alignment IDs and task IDs
-                            const benchlingUrl = `https://app.benchling.com/nucleotide-alignments/${result.alignment_id}`;
-                            resultEntry.innerHTML = `
-                                <div class="result-success">
-                                    <strong>${result.tube_name}</strong> - 
-                                    <a href="${benchlingUrl}" target="_blank" class="benchling-link">
-                                        View in Benchling
-                                    </a>
-                                    <span class="result-id">ID: ${result.alignment_id}</span>
-                                    ${result.response_data ? `<span class="debug-info">Response: ${JSON.stringify(result.response_data)}</span>` : ''}
-                                </div>
-                            `;
-                        } else {
-                            resultEntry.innerHTML = `
-                                <div class="result-error">
-                                    <strong>${result.tube_name}</strong> - 
-                                    <span class="error-text">Failed to create alignment</span>
-                                    ${result.error ? `<span class="error-details">(${result.error})</span>` : ''}
-                                    ${result.response_data ? `<span class="debug-info">Response: ${JSON.stringify(result.response_data)}</span>` : ''}
-                                </div>
-                            `;
-                        }
+                        data.results.forEach(result => {
+                            console.log('DEBUG: Processing result:', result);  // Console log
+                            const resultEntry = document.createElement('div');
+                            resultEntry.className = 'result-entry';
+                            
+                            if (result.success) {
+                                // Link to DNA sequence in Benchling (not alignment)
+                                const benchlingUrl = result.sequence_url || '#';
+                                const linkText = benchlingUrl !== '#' ? 'View Sequence in Benchling' : 'Sequence URL unavailable';
+                                resultEntry.innerHTML = `
+                                    <div class="result-success">
+                                        <strong>${result.tube_name}</strong> - 
+                                        ${benchlingUrl !== '#' ? `<a href="${benchlingUrl}" target="_blank" class="benchling-link">${linkText}</a>` : `<span class="error-text">${linkText}</span>`}
+                                        ${result.alignment_id ? `<span class="result-id">Alignment ID: ${result.alignment_id}</span>` : ''}
+                                    </div>
+                                `;
+                            } else {
+                                // On error, still try to show sequence link if available
+                                const benchlingUrl = result.sequence_url || null;
+                                resultEntry.innerHTML = `
+                                    <div class="result-error">
+                                        <strong>${result.tube_name}</strong> - 
+                                        <span class="error-text">Failed to create alignment</span>
+                                        ${result.error ? `<span class="error-details">(${result.error})</span>` : ''}
+                                        ${benchlingUrl ? `<a href="${benchlingUrl}" target="_blank" class="benchling-link">View Sequence in Benchling</a>` : ''}
+                                    </div>
+                                `;
+                            }
+                            
+                            resultsContainer.appendChild(resultEntry);
+                        });
                         
-                        resultsContainer.appendChild(resultEntry);
-                    });
+                        lastResultsHash = currentHash;
+                        resultsDisplayed = true;
+                    }
                 } else {
-                    resultsCard.style.display = 'none';
+                    // Only hide results card if we haven't displayed results yet
+                    // Once results are shown, keep them visible even if polling returns empty
+                    if (!resultsDisplayed) {
+                        resultsCard.style.display = 'none';
+                    }
                 }
             })
             .catch(error => {
@@ -159,6 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         clearStatus();
         logContainer.innerHTML = '<div class="log-placeholder">Uploading files...</div>';
+        
+        // Reset results tracking for new alignment
+        lastResultsHash = null;
+        resultsDisplayed = false;
+        resultsCard.style.display = 'none';
+        resultsContainer.innerHTML = '';
 
         try {
             // Step 1: Upload files

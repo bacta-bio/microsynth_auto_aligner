@@ -23,6 +23,8 @@ BENCHLING_CLIENT_ID=your_client_id_here
 BENCHLING_CLIENT_SECRET=your_client_secret_here
 BENCHLING_BASE_URL=https://api.benchling.com/v2
 BENCHLING_TOKEN_URL=https://api.benchling.com/v2/token
+BENCHLING_DOMAIN=bacta.benchling.com
+BENCHLING_TENANT=bacta
 REQUEST_TIMEOUT=30
 MAX_RETRIES=3
 ```
@@ -52,10 +54,10 @@ Open your browser at: `http://localhost:8080` or `http://your-server-ip:8080`
 
 ## Usage
 
-1. **Upload Files**: Click "Choose Files" and select your Microsynth FASTA files (`.fasta`, `.fa`, `.gbk`, `.genbank`) or upload a zip archive
+1. **Upload Files**: Click "Choose Files" and select your Microsynth sequence files (`.fasta`, `.fa`, `.gbk`, `.genbank`) or upload a zip archive
 2. **Run Alignment**: Click "Upload & Run Alignment"
 3. **Monitor Progress**: Watch real-time logs in the progress section
-4. **Results**: Alignments are automatically uploaded to Benchling
+4. **Results**: Alignments are automatically uploaded to Benchling. Click "View Sequence in Benchling" to open the DNA sequence directly in Benchling (not the alignment)
 
 ### Supported File Formats
 - `.fasta`, `.fa` - FASTA sequence files
