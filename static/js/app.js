@@ -266,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerBtn = document.getElementById('primer-register-btn');
     const previewTable = document.getElementById('primer-preview-table');
     const resultsTable = document.getElementById('primer-results-table');
-    const directionSelect = document.getElementById('primer-direction');
     const downloadIdtBtn = document.getElementById('primer-download-idt');
     const downloadEurofinsBtn = document.getElementById('primer-download-eurofins');
 
@@ -288,27 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     fetchUsers();
-
-    async function fetchDirectionOptions() {
-        try {
-            const resp = await fetch('/api/dropdown/options');
-            const data = await resp.json();
-            (data.options || []).forEach(o => {
-                const opt = document.createElement('option');
-                opt.value = o.value;
-                opt.textContent = o.label;
-                directionSelect?.appendChild(opt);
-            });
-            // Add empty option
-            const empty = document.createElement('option');
-            empty.value = '';
-            empty.textContent = 'No Direction';
-            if (directionSelect) directionSelect.insertBefore(empty, directionSelect.firstChild);
-        } catch (e) {
-            console.error('Failed to load direction options', e);
-        }
-    }
-    fetchDirectionOptions();
 
     function renderTable(container, rows) {
         if (!container) return;
@@ -374,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const resp = await fetch('/api/primer/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, rows: previewRows, directionOptionId: directionSelect?.value || undefined })
+                body: JSON.stringify({ userId, rows: previewRows })
             });
             const data = await resp.json();
             if (!resp.ok) {

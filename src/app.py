@@ -189,7 +189,6 @@ def primer_register():
     registry_id = REGISTRY_ID
     schema_id = SCHEMA_ID
     rows = data.get('rows', [])
-    direction_option_id = data.get('directionOptionId')  # optional dropdown option id
     if not user_id or not registry_id or not schema_id or not rows:
         return jsonify({'error': 'userId, registryId, schemaId and rows are required'}), 400
     results = []
@@ -206,8 +205,6 @@ def primer_register():
                     "Description": {"textValue": str(row.get('Description', ''))}
                 }
             }
-            if direction_option_id:
-                payload['fields']['Direction'] = {"type": "dropdown", "value": direction_option_id}
             resp = benchling_client.make_request('POST', '/dna-oligos', data=payload)
             rj = resp.json()
             # Post-create rename to NUMERICID_original
