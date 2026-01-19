@@ -51,7 +51,8 @@ class BenchlingAuth:
             self._token_expires_at = time.time() + int(expires_in)
             logger.info("Fetched new OAuth access token")
         except requests.RequestException as e:
-            logger.error("Failed to fetch OAuth token", error=str(e))
+            logger.error("Failed to fetch OAuth token")
+            logger.error(e)
             raise
     
     def _ensure_token(self) -> None:
@@ -84,10 +85,12 @@ class BenchlingAuth:
                 logger.info("OAuth credentials validated successfully")
                 return True
             else:
-                logger.error("Credential validation failed", status_code=response.status_code)
+                logger.error("Credential validation failed")
+                logger.error(response.status_code)
                 return False
         except Exception as e:
-            logger.error("Failed to validate credentials", error=str(e))
+            logger.error("Failed to validate credentials")
+            logger.error(e)
             return False
     
     def get_auth_info(self) -> Dict[str, str]:

@@ -172,7 +172,7 @@ def primer_preview():
             df = pd.read_excel(f)
         except Exception as e:
             return jsonify({'error': f'Unable to parse file: {e}'}), 400
-    required = ['Name', 'Sequence', 'Description']
+    required = ['Name', 'Sequence']
     for col in required:
         if col not in df.columns:
             return jsonify({'error': f"Missing required column: {col}"}), 400
@@ -202,7 +202,7 @@ def primer_register():
                 "bases": str(row.get('Sequence', '')),
                 "authorIds": [user_id],
                 "fields": {
-                    "Description": {"textValue": str(row.get('Description', ''))}
+                    "Name": {"value": str(row.get('Name', ''))}
                 }
             }
             resp = benchling_client.make_request('POST', '/dna-oligos', data=payload)
@@ -223,8 +223,7 @@ def primer_register():
                 pass
             results.append({
                 'Oligo Name': new_name,
-                'Sequence': payload['bases'],
-                'Personal Note': row.get('Description', '')
+                'Sequence': payload['bases']
             })
         except Exception as e:
             results.append({

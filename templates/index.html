@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>baCta Apps</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
     <div class="container">
         <!-- Header with Logo + Tabs -->
         <header class="header header-with-tabs">
             <div class="header-top">
                 <div class="logo-container">
-                    <img src="{{ url_for('static', filename='images/bacta-logo.png') }}" alt="Bacta Logo" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <img src="{{ url_for('static', filename='images/bacta-logo.png') }}" alt="Bacta Logo" class="logo"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                     <div class="logo-text" style="display: none;">BACTA</div>
                 </div>
                 <div class="app-title">
@@ -21,7 +24,8 @@
             </div>
 
             <nav class="tabs" role="tablist">
-                <button class="tab active" data-tab="aligner" aria-selected="true" role="tab">Microsynth Auto Aligner</button>
+                <button class="tab active" data-tab="aligner" aria-selected="true" role="tab">Microsynth Auto
+                    Aligner</button>
                 <button class="tab" data-tab="next" aria-selected="false" role="tab">Primer Registration</button>
                 <button class="tab" data-tab="helper" aria-selected="false" role="tab">Benchling Helper</button>
             </nav>
@@ -31,53 +35,48 @@
         <main class="main-content">
             <!-- Tab: Aligner -->
             <section class="tab-panel" id="tab-aligner" role="tabpanel" aria-labelledby="tab-aligner-btn">
-            <div class="card">
-                <h2>Configure Alignment</h2>
-                
-                <form id="alignment-form">
-                    <div class="form-group">
-                        <label for="file-upload">Upload Microsynth Files</label>
-                        <input 
-                            type="file" 
-                            id="file-upload" 
-                            name="files" 
-                            multiple
-                            accept=".fasta,.fa,.gbk,.genbank,.zip"
-                            required
-                        >
-                        <small class="help-text">
-                            Upload your Microsynth FASTA files (.fasta, .fa, .gbk, .genbank) or a zip archive containing multiple files
-                        </small>
+                <div class="card">
+                    <h2>Configure Alignment</h2>
+
+                    <form id="alignment-form">
+                        <div class="form-group">
+                            <label for="file-upload">Upload Microsynth Files</label>
+                            <input type="file" id="file-upload" name="files" multiple
+                                accept=".fasta,.fa,.gbk,.genbank,.zip" required>
+                            <small class="help-text">
+                                Upload your Microsynth FASTA files (.fasta, .fa, .gbk, .genbank) or a zip archive
+                                containing multiple files
+                            </small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="run-btn">
+                            <span class="btn-text">Upload & Run Alignment</span>
+                            <span class="btn-loader" style="display: none;">⏳ Uploading & Processing...</span>
+                        </button>
+                    </form>
+
+                    <!-- Status Messages -->
+                    <div id="status-message" class="status-message" style="display: none;"></div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="card" id="results-card" style="display: none;">
+                    <h2>Alignment Results</h2>
+                    <div class="results-container" id="results-container">
+                        <!-- Results will be populated here -->
                     </div>
-
-                    <button type="submit" class="btn btn-primary" id="run-btn">
-                        <span class="btn-text">Upload & Run Alignment</span>
-                        <span class="btn-loader" style="display: none;">⏳ Uploading & Processing...</span>
-                    </button>
-                </form>
-
-                <!-- Status Messages -->
-                <div id="status-message" class="status-message" style="display: none;"></div>
-            </div>
-
-            <!-- Results Section -->
-            <div class="card" id="results-card" style="display: none;">
-                <h2>Alignment Results</h2>
-                <div class="results-container" id="results-container">
-                    <!-- Results will be populated here -->
                 </div>
-            </div>
 
-            <!-- Logs Section -->
-            <div class="card">
-                <h2>Progress Log</h2>
-                <div class="log-container" id="log-container">
-                    <p class="log-placeholder">Waiting to start alignment...</p>
+                <!-- Logs Section -->
+                <div class="card">
+                    <h2>Progress Log</h2>
+                    <div class="log-container" id="log-container">
+                        <p class="log-placeholder">Waiting to start alignment...</p>
+                    </div>
+                    <div class="log-actions">
+                        <button class="btn btn-secondary" id="clear-logs-btn">Clear Logs</button>
+                    </div>
                 </div>
-                <div class="log-actions">
-                    <button class="btn btn-secondary" id="clear-logs-btn">Clear Logs</button>
-                </div>
-            </div>
             </section>
 
             <!-- Tab: Second (placeholder) -->
@@ -93,12 +92,13 @@
                     <div class="form-group">
                         <label for="primer-file">Upload CSV</label>
                         <input type="file" id="primer-file" accept=".csv,.xlsx">
-                        <small class="help-text">Columns required: Name, Sequence, Description</small>
+                        <small class="help-text">Columns required: Name, Sequence</small>
                     </div>
 
                     <div class="actions">
                         <button class="btn btn-primary" id="primer-preview-btn">Preview</button>
-                        <button class="btn btn-secondary" id="primer-register-btn" disabled>Register to Benchling</button>
+                        <button class="btn btn-secondary" id="primer-register-btn" disabled>Register to
+                            Benchling</button>
                     </div>
                 </div>
 
@@ -112,12 +112,13 @@
                     <div id="primer-results-table" class="preview-table"></div>
                     <div class="log-actions">
                         <button class="btn btn-secondary" id="primer-download-idt" disabled>Download IDT CSV</button>
-                        <button class="btn btn-secondary" id="primer-download-eurofins" disabled>Download Eurofins XLSX</button>
+                        <button class="btn btn-secondary" id="primer-download-eurofins" disabled>Download Eurofins
+                            XLSX</button>
                     </div>
                 </div>
             </section>
         </main>
-        
+
         <!-- Tab: Benchling Helper Logs -->
         <section class="tab-panel hidden" id="tab-helper" role="tabpanel" aria-labelledby="tab-helper-btn">
             <div class="card">
@@ -139,5 +140,5 @@
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
-</html>
 
+</html>

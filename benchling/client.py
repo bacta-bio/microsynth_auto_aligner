@@ -86,10 +86,9 @@ class BenchlingClient:
             
         except requests.exceptions.RequestException as e:
             logger.error(
-                f"Request failed: {method} {endpoint}",
-                error=str(e),
-                status_code=getattr(e.response, 'status_code', None)
+                f"Request failed: {method} {endpoint}"
             )
+            logger.error(e)
             raise
     
     def make_request(
